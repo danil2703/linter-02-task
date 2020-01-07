@@ -3,54 +3,52 @@
     "content": [
         {
             "block": "text",
-            "mods": { "type": "h3" }
+            "mods": { "type": "h2" }
         },
         {
             "block": "text",
-            "mods": { "type": "h1" }
+            "mods": { "type": "h3" }
         }
     ]
 }`;
 
 lint(json);*/
 
-const data = {
-    h1: false,
-    h2: false
-}
-
 function lint(string){
     let object = JSON.parse(string);
     let errors = [];
+    let data = {
+        h1: false,
+        h2: false
+    }
 
-    errors = lintMain(object, string, errors);
+    errors = lintMain(object, string, errors, data);
     console.log(errors);
     return errors;
 }
 
-function lintMain(object, string, errors){
-
+function lintMain(object, string, errors, data){
     if(Array.isArray(object.content)) {
         object.content.forEach(item => {
             //string.slice(string.indexOf())
-            errors = lintMain(item, string, errors);
+            errors = lintMain(item, string, errors, data);
         });
     } else {
         if(typeof(object.content) == 'object') {
             for(key in object.content) {
-                errors = lintMain(object.content[key], string, errors);
+                errors = lintMain(object.content[key], string, errors, data);
             }
         }
     }
 
     if(object.block == 'text') {
-        errors = lintText(object, string, errors);
+        errors = lintText(object, string, errors, data);
     }
 
     return errors;
 }
 
-function lintText(object, string, errors) {
+function lintText(object, string, errors, data) {
     if(object.mods.type == 'h1') {
         if(data.h1) {
             errors.push({
