@@ -29,23 +29,22 @@ function lint(string){
 }
 
 function lintMain(object, string, errors){
-    console.log(object);
 
     if(Array.isArray(object.content)) {
         object.content.forEach(item => {
             //string.slice(string.indexOf())
-            error = lintMain(item, string, errors);
+            errors = lintMain(item, string, errors);
         });
     } else {
         if(typeof(object.content) == 'object') {
             for(key in object.content) {
-                error = lintMain(object.content[key], string, errors);
+                errors = lintMain(object.content[key], string, errors);
             }
         }
     }
 
     if(object.block == 'text') {
-        error = lintText(object, string, errors);
+        errors = lintText(object, string, errors);
     }
 
     return errors;
