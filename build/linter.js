@@ -1,26 +1,30 @@
 const json = `{
-    "block": "warning",
+    "block": "grid",
+    "mods": {
+        "m-columns": "10"
+    },
     "content": [
         {
-            "block": "placeholder",
-            "mods": { "size": "m" }
-        },
-        {
-            "elem": "warning",
+            "block": "grid",
+            "elem": "fraction",
+            "elemMods": {
+                "m-col": "8"
+            },
             "content": [
                 {
-                    "block": "text",
-                    "mods": { "size": "m" }
-                },
+                    "block": "payment"
+                }
+            ]
+        },
+        {
+            "block": "grid",
+            "elem": "fraction",
+            "elemMods": {
+                "m-col": "2"
+            },
+            "content": [
                 {
-                    "block": "text",
-                    "mods": { "size": "l" }
-                },
-                {
-                    "block": "warning",
-                    "content": [
-                        { "block": "placeholder", "mods": { "size": "xl" } }
-                    ]
+                    "block": "offer"
                 }
             ]
         }
@@ -35,6 +39,8 @@ function lint(string){
     let data = {
         h1: false,
         h2: false,
+        marketing: 0,
+        gridSize: 0,
         warning: {
             firstText: false,
             firstBlock: false,
@@ -44,7 +50,7 @@ function lint(string){
 
     errors = lintMain(object, string, errors, data);
     console.log(errors);
-    return errors.reverse();
+    return errors
 }
 
 function lintMain(object, string, errors, data){
@@ -58,6 +64,10 @@ function lintMain(object, string, errors, data){
                 errors = lintMain(object.content[key], string, errors, data);
             }
         }
+    }
+
+    if(object.block == 'grid' && object.mods) {
+        errors = lintGrid(object.content, object.mods["m-columns"], errors, string);
     }
 
     if(object.block == 'text') {
@@ -97,6 +107,30 @@ function findFirst(object, data) {
     }
     return data.warning.firstText;
 }
+
+function lintGrid(content, gridSize, errors, str){
+    let marketing = 0;
+    let marketingBlocks = ['commercial', 'offer'];
+    let infoBlocks = ['payment', 'warning', 'product', 'history', 'cover', 'collect', 'articles', 'subscribtion', 'event'];
+    content.forEach(item => {
+        if(item.elem == 'fraction') {
+            if(marketingBlocks.includes(item.content[0].block)){
+                marketing += +item.elemMods['m-col'];
+            }
+        }
+    });
+    if(marketing > gridSize / 2) {
+        errors.push({
+            "code": "GRID.TOO_MUCH_MARKETING_BLOCKS",
+            "error": "Маркетинговые блоки не могут занимать больше половины от всех колонок блока grid",
+            "location": {
+                "start": { "column": 1, "line": 1 },
+                "end": { "column": 2, "line": str.split('\n').length }
+            }
+        });
+    }
+    return errors;
+}   
 
 function lintWarning(object, string, errors, data) {
     if(Array.isArray(object.content)) {
