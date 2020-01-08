@@ -2620,8 +2620,26 @@ function lintMain(object, string, errors, data){
         data.warning.firstBlock = false;
         data.warning.firstText = false;
         data.warning.placeh = false;
-        errors = lintWarning(object, string, errors, data);
-        errors = lintWarningWhoFirst(object, string, errors, data);
+        let error = [];
+        error = lintWarning(object, string, [], data);
+        error = lintWarningWhoFirst(object, string, error, data);
+        console.log(data);
+        console.log(error);
+        if(!data.warning.placeh) {
+            error.forEach((item, index, arr) => {
+                if(item.code == 'WARNING.INVALID_BUTTON_POSITION') {
+                    arr.splice(index, 1);
+                }
+            })
+        }
+        if(!data.warning.firstText) {
+            error.forEach((item, index, arr) => {
+                if(item.code == 'WARNING.INVALID_BUTTON_SIZE') {
+                    arr.splice(index, 1);
+                }
+            })
+        }
+        errors = errors.concat(error);
     }
     return errors;
 }
@@ -2629,10 +2647,11 @@ function lintMain(object, string, errors, data){
 function lintWarning(object, string, errors, data) {
     console.log(object.block);
     if(Array.isArray(object.content)) {
-        let innerWarning = false;
         object.content.forEach(item => {
-
-            errors = lintWarning(item, string, errors, data);
+            if(item.block !== 'warning') {
+                errors = lintWarning(item, string, errors, data);
+            }
+            
         })
     }
     if(object.block == 'text' && object.mods) {
