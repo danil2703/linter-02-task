@@ -1,4 +1,30 @@
+const json = `
+        {
+            "block": "warning",
+            "content": [
+                {
+                    "block": "button",
+                    "mods": {
+                        "size": "xxl"
+                    }
+                },
+                {
+                    "block": "button",
+                    "mods": {
+                        "size": "xxl"
+                    }
+                },
+                {
+                    "block": "placeholder",
+                    "mods": {
+                        "size": "s"
+                    }
+                }
+            ]
+        }
+        `;
 
+lint(json);
 
 function lint(string){
     let object = JSON.parse(string);
@@ -53,7 +79,6 @@ function lintMain(object, string, errors, data){
         data.warning.firstText = findFirst(object, data);
         let error;
         error = lintWarning(object, string, [], data);
-        error = lintWarningWhoFirst(object, string, error, data);
         if(!data.warning.placeh) {
             error.forEach((item, i, array) => {
                 if(item.code == 'WARNING.INVALID_BUTTON_POSITION') {
@@ -105,12 +130,12 @@ function lintGrid(content, gridSize, errors, str){
 }   
 
 function lintWarning(object, string, errors, data) {
-    if(Array.isArray(object.content)) {
-        object.content.forEach(item => {
-            if(item.block !== 'warning') {
-                errors = lintWarning(item, string, errors, data);
-            }
-        })
+    if(object.block == 'placeholder') {
+        errors = lintWarningPlaceholder(object, string, errors, data);
+        if(!data.warning.firstBlock) {
+            data.warning.firstBlock = 'placeholder';
+        }
+        data.warning.placeh = true;
     }
     if(object.block == 'text' && object.mods) {
         if(data.warning.firstText !== object.mods.size) {
@@ -137,13 +162,14 @@ function lintWarning(object, string, errors, data) {
             });
         }
     }
-    if(object.block == 'placeholder') {
-        errors = lintWarningPlaceholder(object, string, errors, data);
-        if(!data.warning.firstBlock) {
-            data.warning.firstBlock = 'placeholder';
-        }
-        data.warning.placeh = true;
+    if(Array.isArray(object.content)) {
+        object.content.forEach(item => {
+            if(item.block !== 'warning') {
+                errors = lintWarning(item, string, errors, data);
+            }
+        })
     }
+
 
     return errors;
 }
@@ -159,13 +185,6 @@ function lintWarningPlaceholder(object, string, errors, data) {
                 "end": { "column": 2, "line": 22 }
             }
         });
-    }
-    return errors;
-}
-
-function lintWarningWhoFirst(object, string, errors, data) {
-    if(data.warning.firstBlock == 'button') {
-
     }
     return errors;
 }
