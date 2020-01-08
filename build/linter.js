@@ -1,8 +1,7 @@
 const json = `{
     "block": "warning",
     "content": [
-        { "block": "text", "mods": { "size": "l" } },
-        { "block": "button", "mods": { "size": "s" } }
+        { "block": "placeholder", "mods": { "size": "xl" } }
     ]
 }`;
 
@@ -16,7 +15,8 @@ function lint(string){
         h2: false,
         warning: {
             firstText: false,
-            firstBlock: false
+            firstBlock: false,
+            placeh: false
         }
     }
 
@@ -47,6 +47,12 @@ function lintMain(object, string, errors, data){
         errors = lintWarningWhoFirst(object, string, errors, data);
     }
 
+    if(!data.warning.placeh)
+        errors.forEach((item, index, arr) => {
+            if(item.code == 'WARNING.INVALID_BUTTON_POSITION') {
+                arr.splice(index, 1);
+            }
+        })
     return errors;
 }
 
@@ -83,9 +89,9 @@ function lintWarning(object, string, errors, data) {
         if(!data.warning.firstBlock) {
             data.warning.firstBlock = 'placeholder';
         }
+        data.warning.placeh = true;
     }
 
-    
     return errors;
 }
 
