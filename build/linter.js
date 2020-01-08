@@ -1,36 +1,29 @@
-const json = `
+const json = `{
+    "block": "warning",
+    "content": [
         {
-            "block": "warning",
+            "block": "text",
+            "mods": { "size": "m" }
+        },
+        {
+            "elem": "content",
             "content": [
                 {
-                    "block": "button",
-                    "mods": {
-                        "size": "xl"
-                    },
-                    "content": [
-                        {
-                            "block": "text",
-                            "mods": {
-                                "size": "s"
-                            },
-                            "content": [{
-                                "block": "placeholder",
-                                "mods": {
-                                    "size": "l"
-                                }
-                            }]
-                        }
-                    ]
+                    "block": "text",
+                    "mods": { "size": "m" }
                 },
                 {
-                "block": "button",
-                    "mods": {
-                        "size": "xl"
-                }
+                    "block": "text",
+                    "mods": { "size": "m" },
+                    "content": {
+                            "block": "text",
+                            "mods": { "size": "xl" }
+                    }
                 }
             ]
         }
-        `;
+    ]
+}`;
 
 lint(json);
 
@@ -178,9 +171,7 @@ function lintWarning(object, string, errors, data) {
         })
     } else {
         if(typeof(object.content) == 'object') {
-            for(key in object.content) {
-                errors = lintWarning(object.content[key], string, errors, data);
-            }
+                errors = lintWarning(object.content, string, errors, data);
         }
     }
 
