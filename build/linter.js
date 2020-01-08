@@ -1,13 +1,9 @@
-const json = `[
-    {
-        "block": "text",
-        "mods": { "type": "h1" }
-    },
-    {
-        "block": "text",
-        "mods": { "type": "h1" }
-    }
-]`;
+const json = `{
+    "block": "warning",
+    "content": [
+        { "block": "button", "mods": { "size": "s" } }
+    ]
+}`;
 
 lint(json);
 
@@ -191,7 +187,7 @@ function lintWarningButton(object, string, errors, data) {
         }
     });
     console.log(data);
-    if(object.mods.size !== trueSize && data.warning.firstText) {
+    if(object.mods.size !== trueSize) {
         errors.push({
             "code": "WARNING.INVALID_BUTTON_SIZE",
             "error": "Размер кнопки блока warning должен быть на 1 шаг больше эталонного",
