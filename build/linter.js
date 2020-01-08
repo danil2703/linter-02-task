@@ -3,21 +3,29 @@ const json = `
             "block": "warning",
             "content": [
                 {
-                    "block": "button",
+                    "block": "text",
                     "mods": {
-                        "size": "xxl"
+                        "size": "xl"
+                    },
+                    "content": [
+                            {
+                            "block": "text",
+                            "mods": {
+                                "size": "l"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "block": "text",
+                    "mods": {
+                        "size": "l"
                     }
                 },
                 {
-                    "block": "button",
+                    "block": "text",
                     "mods": {
-                        "size": "xxl"
-                    }
-                },
-                {
-                    "block": "placeholder",
-                    "mods": {
-                        "size": "s"
+                        "size": "l"
                     }
                 }
             ]
@@ -51,7 +59,7 @@ function lint(string){
 }
 
 function lintMain(object, string, errors, data){
-    console.log(object.block);
+    
     if(Array.isArray(object.content)) {
         object.content.forEach(item => {
             errors = lintMain(item, string, errors, data);
@@ -130,6 +138,7 @@ function lintGrid(content, gridSize, errors, str){
 }   
 
 function lintWarning(object, string, errors, data) {
+    console.log(data);
     if(object.block == 'placeholder') {
         errors = lintWarningPlaceholder(object, string, errors, data);
         if(!data.warning.firstBlock) {
@@ -168,6 +177,12 @@ function lintWarning(object, string, errors, data) {
                 errors = lintWarning(item, string, errors, data);
             }
         })
+    } else {
+        if(typeof(object.content) == 'object') {
+            for(key in object.content) {
+                errors = lintWarning(object.content[key], string, errors, data);
+            }
+        }
     }
 
 
