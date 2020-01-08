@@ -1,11 +1,11 @@
-const json = `{
+/*const json = `{
     "block": "warning",
     "content": [
         { "block": "placeholder", "mods": { "size": "xl" } }
     ]
 }`;
 
-lint(json);
+lint(json);*/
 
 function lint(string){
     let object = JSON.parse(string);
@@ -59,6 +59,9 @@ function lintMain(object, string, errors, data){
 function lintWarning(object, string, errors, data) {
     if(Array.isArray(object.content)) {
         object.content.forEach(item => {
+            if(item.block == 'warning') {
+                return errors;
+            }
             errors = lintWarning(item, string, errors, data);
         })
     }
