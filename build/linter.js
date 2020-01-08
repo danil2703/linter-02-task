@@ -1,8 +1,7 @@
 const json = `{
     "block": "warning",
     "content": [
-        { "block": "button", "mods": { "size": "m" } },
-        { "block": "placeholder", "mods": { "size": "m" } }
+        { "block": "placeholder", "mods": { "size": "xl" } }
     ]
 }`;
 
@@ -47,6 +46,7 @@ function lintMain(object, string, errors, data){
         data.warning.firstBlock = false;
         data.warning.firstText = false;
         data.warning.placeh = false;
+        data.warning.firstText = findFirst(object, data);
         let error;
         error = lintWarning(object, string, [], data);
         error = lintWarningWhoFirst(object, string, error, data);
@@ -57,11 +57,24 @@ function lintMain(object, string, errors, data){
                     array.splice(i, 1);
                 }
             });
-            console.log(error);
         }
         errors = errors.concat(error);
     }
     return errors;
+}
+
+function findFirst(object, data) {
+    if(object.block == 'text' && object.mods && !data.warning.firstText) {
+        return object.mods.size;
+    }
+    if(Array.isArray(object.content)) {
+        object.content.forEach(item => {
+            if(!data.warning.firstText) {
+                data.warning.firstText = findFirst(item, data);
+            }
+        })
+    }
+    return data.warning.firstText;
 }
 
 function lintWarning(object, string, errors, data) {
@@ -73,10 +86,6 @@ function lintWarning(object, string, errors, data) {
         })
     }
     if(object.block == 'text' && object.mods) {
-        if(!data.warning.firstText) {
-            data.warning.firstText = object.mods.size;
-            return errors;
-        }
         if(data.warning.firstText !== object.mods.size) {
             errors.push({
                 "code": "WARNING.TEXT_SIZES_SHOULD_BE_EQUAL",
