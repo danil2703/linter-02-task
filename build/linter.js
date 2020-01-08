@@ -1,7 +1,139 @@
 const json = `{
     "block": "warning",
+    "mix": [
+        {
+            "block": "informer",
+            "mods": {
+                "border": "all",
+                "view": "default"
+            }
+        },
+        {
+            "block": "theme",
+            "mods": {
+                "color": "project-warning"
+            }
+        }
+    ],
     "content": [
-        { "block": "button", "mods": { "size": "s" } }
+        {
+            "block": "warning",
+            "elem": "content",
+            "mix": [
+                {
+                    "block": "informer",
+                    "elem": "content",
+                    "elemMods": {
+                        "distribute": "center",
+                        "space-a": "xxl"
+                    }
+                }
+            ],
+            "content": [
+                {
+                    "block": "placeholder",
+                    "mods": {
+                        "view": "primary",
+                        "size": "m"
+                    }
+                },
+                {
+                    "block": "text",
+                    "mods": {
+                        "view": "primary",
+                        "size": "xl",
+                        "align": "center"
+                    },
+                    "content": [
+                        {
+                            "block": "text",
+                            "elem": "word",
+                            "elemMods": {
+                                "width": "s"
+                            }
+                        },
+                        {
+                            "block": "text",
+                            "elem": "word",
+                            "elemMods": {
+                                "width": "l"
+                            }
+                        },
+                        {
+                            "block": "text",
+                            "elem": "word",
+                            "elemMods": {
+                                "width": "m"
+                            }
+                        },
+                        {
+                            "block": "text",
+                            "elem": "word",
+                            "elemMods": {
+                                "width": "m"
+                            }
+                        },
+                        {
+                            "block": "text",
+                            "elem": "word",
+                            "elemMods": {
+                                "width": "s"
+                            }
+                        },
+                        {
+                            "block": "text",
+                            "elem": "word",
+                            "elemMods": {
+                                "width": "m"
+                            }
+                        },
+                        {
+                            "block": "text",
+                            "elem": "word",
+                            "elemMods": {
+                                "width": "l"
+                            }
+                        },
+                        {
+                            "block": "text",
+                            "elem": "word",
+                            "elemMods": {
+                                "width": "s"
+                            }
+                        },
+                        {
+                            "block": "text",
+                            "elem": "word",
+                            "elemMods": {
+                                "width": "m"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "block": "warning",
+            "elem": "button-wrapper",
+            "mix": [
+                {
+                    "block": "informer",
+                    "elem": "action",
+                    "elemMods": {
+                        "distribute": "center",
+                        "space-a": "xl"
+                    }
+                }
+            ],
+            "content": [
+                {
+                    "block": "button",
+                    "mods": {
+                        "size": "l"
+                    }
+                }
+            ]
+        }
     ]
 }`;
 
@@ -34,6 +166,25 @@ function lint(string){
 }
 
 function lintMain(object, string, errors, data){
+    if(object.block == 'warning') {
+        data.warning.firstBlock = false;
+        data.warning.firstText = false;
+        data.warning.placeh = false;
+        data.warning.firstText = findFirst(object, data);
+        let error;
+        error = lintWarning(object, string, [], data);
+        error = lintWarningWhoFirst(object, string, error, data);
+        if(!data.warning.placeh) {
+            error.forEach((item, i, array) => {
+                if(item.code == 'WARNING.INVALID_BUTTON_POSITION') {
+                    array.splice(i, 1);
+                }
+            });
+        }
+        errors = errors.concat(error);
+    }
+
+
     if(Array.isArray(object.content)) {
         object.content.forEach(item => {
             errors = lintMain(item, string, errors, data);
@@ -52,24 +203,6 @@ function lintMain(object, string, errors, data){
 
     if(object.block == 'text') {
         errors = lintText(object, string, errors, data);
-    }
-
-    if(object.block == 'warning') {
-        data.warning.firstBlock = false;
-        data.warning.firstText = false;
-        data.warning.placeh = false;
-        data.warning.firstText = findFirst(object, data);
-        let error;
-        error = lintWarning(object, string, [], data);
-        error = lintWarningWhoFirst(object, string, error, data);
-        if(!data.warning.placeh) {
-            error.forEach((item, i, array) => {
-                if(item.code == 'WARNING.INVALID_BUTTON_POSITION') {
-                    array.splice(i, 1);
-                }
-            });
-        }
-        errors = errors.concat(error);
     }
     return errors;
 }
