@@ -3,30 +3,30 @@ const json = `
             "block": "warning",
             "content": [
                 {
-                    "block": "text",
+                    "block": "button",
                     "mods": {
                         "size": "xl"
                     },
                     "content": [
-                            {
+                        {
                             "block": "text",
                             "mods": {
-                                "size": "l"
-                            }
+                                "size": "s"
+                            },
+                            "content": [{
+                                "block": "placeholder",
+                                "mods": {
+                                    "size": "l"
+                                }
+                            }]
                         }
                     ]
                 },
                 {
-                    "block": "text",
+                "block": "button",
                     "mods": {
-                        "size": "l"
-                    }
-                },
-                {
-                    "block": "text",
-                    "mods": {
-                        "size": "l"
-                    }
+                        "size": "xl"
+                }
                 }
             ]
         }
@@ -116,7 +116,6 @@ function findFirst(object, data) {
 function lintGrid(content, gridSize, errors, str){
     let marketing = 0;
     let marketingBlocks = ['commercial', 'offer'];
-    let infoBlocks = ['payment', 'warning', 'product', 'history', 'cover', 'collect', 'articles', 'subscribtion', 'event'];
     content.forEach(item => {
         if(item.elem == 'fraction') {
             if(marketingBlocks.includes(item.content[0].block)){
@@ -205,7 +204,7 @@ function lintWarningPlaceholder(object, string, errors, data) {
 }
 
 function lintWarningButton(object, string, errors, data) {
-    let sizes = ['s', 'm', 'l', 'xl', 'xxl'];
+    let sizes = ['xs' ,'s', 'm', 'l', 'xl', 'xxl', 'xxxl'];
     let trueSize;
     sizes.forEach((item, index, arr) => {
         if(item === data.warning.firstText) {
