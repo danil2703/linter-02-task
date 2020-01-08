@@ -2625,20 +2625,6 @@ function lintMain(object, string, errors, data){
         error = lintWarningWhoFirst(object, string, error, data);
         console.log(data);
         console.log(error);
-        if(!data.warning.placeh) {
-            error.forEach((item, index, arr) => {
-                if(item.code == 'WARNING.INVALID_BUTTON_POSITION') {
-                    arr.splice(index, 1);
-                }
-            })
-        }
-        if(!data.warning.firstText) {
-            error.forEach((item, index, arr) => {
-                if(item.code == 'WARNING.INVALID_BUTTON_SIZE') {
-                    arr.splice(index, 1);
-                }
-            })
-        }
         errors = errors.concat(error);
     }
     return errors;
