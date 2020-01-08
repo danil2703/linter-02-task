@@ -1,143 +1,4 @@
-const json = `{
-    "block": "warning",
-    "mix": [
-        {
-            "block": "informer",
-            "mods": {
-                "border": "all",
-                "view": "default"
-            }
-        },
-        {
-            "block": "theme",
-            "mods": {
-                "color": "project-warning"
-            }
-        }
-    ],
-    "content": [
-        {
-            "block": "warning",
-            "elem": "content",
-            "mix": [
-                {
-                    "block": "informer",
-                    "elem": "content",
-                    "elemMods": {
-                        "distribute": "center",
-                        "space-a": "xxl"
-                    }
-                }
-            ],
-            "content": [
-                {
-                    "block": "placeholder",
-                    "mods": {
-                        "view": "primary",
-                        "size": "m"
-                    }
-                },
-                {
-                    "block": "text",
-                    "mods": {
-                        "view": "primary",
-                        "size": "xl",
-                        "align": "center"
-                    },
-                    "content": [
-                        {
-                            "block": "text",
-                            "elem": "word",
-                            "elemMods": {
-                                "width": "s"
-                            }
-                        },
-                        {
-                            "block": "text",
-                            "elem": "word",
-                            "elemMods": {
-                                "width": "l"
-                            }
-                        },
-                        {
-                            "block": "text",
-                            "elem": "word",
-                            "elemMods": {
-                                "width": "m"
-                            }
-                        },
-                        {
-                            "block": "text",
-                            "elem": "word",
-                            "elemMods": {
-                                "width": "m"
-                            }
-                        },
-                        {
-                            "block": "text",
-                            "elem": "word",
-                            "elemMods": {
-                                "width": "s"
-                            }
-                        },
-                        {
-                            "block": "text",
-                            "elem": "word",
-                            "elemMods": {
-                                "width": "m"
-                            }
-                        },
-                        {
-                            "block": "text",
-                            "elem": "word",
-                            "elemMods": {
-                                "width": "l"
-                            }
-                        },
-                        {
-                            "block": "text",
-                            "elem": "word",
-                            "elemMods": {
-                                "width": "s"
-                            }
-                        },
-                        {
-                            "block": "text",
-                            "elem": "word",
-                            "elemMods": {
-                                "width": "m"
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "block": "warning",
-            "elem": "button-wrapper",
-            "mix": [
-                {
-                    "block": "informer",
-                    "elem": "action",
-                    "elemMods": {
-                        "distribute": "center",
-                        "space-a": "xl"
-                    }
-                }
-            ],
-            "content": [
-                {
-                    "block": "button",
-                    "mods": {
-                        "size": "l"
-                    }
-                }
-            ]
-        }
-    ]
-}`;
 
-lint(json);
 
 function lint(string){
     let object = JSON.parse(string);
@@ -145,8 +6,6 @@ function lint(string){
     let data = {
         h1: false,
         h2: false,
-        marketing: 0,
-        gridSize: 0,
         warning: {
             firstText: false,
             firstBlock: false,
@@ -166,25 +25,7 @@ function lint(string){
 }
 
 function lintMain(object, string, errors, data){
-    if(object.block == 'warning') {
-        data.warning.firstBlock = false;
-        data.warning.firstText = false;
-        data.warning.placeh = false;
-        data.warning.firstText = findFirst(object, data);
-        let error;
-        error = lintWarning(object, string, [], data);
-        error = lintWarningWhoFirst(object, string, error, data);
-        if(!data.warning.placeh) {
-            error.forEach((item, i, array) => {
-                if(item.code == 'WARNING.INVALID_BUTTON_POSITION') {
-                    array.splice(i, 1);
-                }
-            });
-        }
-        errors = errors.concat(error);
-    }
-
-
+    console.log(object.block);
     if(Array.isArray(object.content)) {
         object.content.forEach(item => {
             errors = lintMain(item, string, errors, data);
@@ -203,6 +44,24 @@ function lintMain(object, string, errors, data){
 
     if(object.block == 'text') {
         errors = lintText(object, string, errors, data);
+    }
+
+    if(object.block == 'warning') {
+        data.warning.firstBlock = false;
+        data.warning.firstText = false;
+        data.warning.placeh = false;
+        data.warning.firstText = findFirst(object, data);
+        let error;
+        error = lintWarning(object, string, [], data);
+        error = lintWarningWhoFirst(object, string, error, data);
+        if(!data.warning.placeh) {
+            error.forEach((item, i, array) => {
+                if(item.code == 'WARNING.INVALID_BUTTON_POSITION') {
+                    array.splice(i, 1);
+                }
+            });
+        }
+        errors = errors.concat(error);
     }
     return errors;
 }
@@ -268,7 +127,14 @@ function lintWarning(object, string, errors, data) {
     if(object.block == 'button') {
         errors = lintWarningButton(object, string, errors, data);
         if(!data.warning.firstBlock) {
-            data.warning.firstBlock = 'button';
+            errors.push({
+                "code": "WARNING.INVALID_BUTTON_POSITION",
+                "error": "Блок button в блоке warning не может находиться перед блоком placeholder",
+                "location": {
+                    "start": { "column": 1, "line": 1 },
+                    "end": { "column": 2, "line": 22 }
+                }
+            });
         }
     }
     if(object.block == 'placeholder') {
@@ -299,14 +165,7 @@ function lintWarningPlaceholder(object, string, errors, data) {
 
 function lintWarningWhoFirst(object, string, errors, data) {
     if(data.warning.firstBlock == 'button') {
-        errors.push({
-            "code": "WARNING.INVALID_BUTTON_POSITION",
-            "error": "Блок button в блоке warning не может находиться перед блоком placeholder",
-            "location": {
-                "start": { "column": 1, "line": 1 },
-                "end": { "column": 2, "line": 22 }
-            }
-        });
+
     }
     return errors;
 }
@@ -319,7 +178,6 @@ function lintWarningButton(object, string, errors, data) {
             trueSize = arr[index+1];
         }
     });
-    console.log(data);
     if(object.mods.size !== trueSize) {
         errors.push({
             "code": "WARNING.INVALID_BUTTON_SIZE",
