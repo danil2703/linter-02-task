@@ -82,7 +82,7 @@ function findFirst(object, data) {
     } else {
         if(typeof(object.content) == 'object') {
             for(key in object.content) {
-                errors = lintWarning(object.content[key], string, errors, data);
+                data.warning.firstText = findFirst(object.content[key], data);
             }
         }
     }
