@@ -1,24 +1,11 @@
 const json = `{
     "block": "warning",
     "content": [
-        {
-            "block": "placeholder",
-            "mods": { "size": "m" }
-        },
-        {
-            "elem": "content",
-            "content": [
-                {
-                    "block": "text",
-                    "mods": { "size": "m" }
-                },
-                {
-                    "block": "text"
-                }
-            ]
-        }
+        { "block": "text", "mods": { "size": "l" } },
+        { "block": "button"}
     ]
 }`;
+
 
 
 lint(json);
@@ -212,6 +199,17 @@ function lintWarningButton(object, string, errors, data) {
                 }
             });
         }
+    }
+
+    if(!object.mods) {
+        errors.push({
+            "code": "WARNING.INVALID_BUTTON_SIZE",
+            "error": "Размер кнопки блока warning должен быть на 1 шаг больше эталонного",
+            "location": {
+                "start": { "column": 1, "line": 1 },
+                "end": { "column": 2, "line": 22 }
+            }
+        });
     }
     return errors;
 }
