@@ -1,8 +1,25 @@
-const json = `
-    {
-        "mods": { "type": "h1" }
-    }
-`;
+const json = `{
+    "block": "warning",
+    "content": [
+        {
+            "block": "placeholder",
+            "mods": { "size": "m" }
+        },
+        {
+            "elem": "content",
+            "content": [
+                {
+                    "block": "text",
+                    "mods": { "size": "m" }
+                },
+                {
+                    "block": "text"
+                }
+            ]
+        }
+    ]
+}`;
+
 
 lint(json);
 
@@ -30,7 +47,6 @@ function lint(string){
 }
 
 function lintMain(object, string, errors, data){
-    
     if(Array.isArray(object.content)) {
         object.content.forEach(item => {
             errors = lintMain(item, string, errors, data);
@@ -119,6 +135,16 @@ function lintWarning(object, string, errors, data) {
                 }
             });
         }
+    }
+    if(object.block == 'text' && !object.mods) {
+        errors.push({
+            "code": "WARNING.TEXT_SIZES_SHOULD_BE_EQUAL",
+            "error": "Тексты в блоке warning должны быть одного размера",
+            "location": {
+                "start": { "column": 1, "line": 1 },
+                "end": { "column": 2, "line": 22 }
+            }
+        });
     }
     if(object.block == 'button') {
         errors = lintWarningButton(object, string, errors, data);
