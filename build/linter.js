@@ -14,8 +14,7 @@ function lint(string){
         h2: false,
         warning: {
             firstText: false,
-            firstBlock: false,
-            placeh: false
+            firstBlock: false
         }
     }
     if(Array.isArray(object)) {
@@ -53,24 +52,14 @@ function lintMain(object, string, errors, data){
     if(object.block == 'warning') {
         data.warning.firstBlock = false;
         data.warning.firstText = false;
-        data.warning.placeh = false;
         data.warning.firstText = findFirst(object, data);
-        let error;
-        error = lintWarning(object, string, [], data);
-        if(!data.warning.placeh) {
-            error.forEach((item, i, array) => {
-                if(item.code == 'WARNING.INVALID_BUTTON_POSITION') {
-                    array.splice(i, 1);
-                }
-            });
-        }
-        errors = errors.concat(error);
+        errors = lintWarning(object, string, errors, data);
     }
     return errors;
 }
 
 function findFirst(object, data) {
-    if(object.block == 'text' && object.mods && !data.warning.firstText) {
+    if(object.block == 'text' && object.mods && object.mods.size && !data.warning.firstText) {
         return object.mods.size;
     }
     if(Array.isArray(object.content)) {
@@ -118,7 +107,6 @@ function lintWarning(object, string, errors, data) {
         if(!data.warning.firstBlock) {
             data.warning.firstBlock = 'placeholder';
         }
-        data.warning.placeh = true;
     }
     if(object.block == 'text' && object.mods) {
         if(data.warning.firstText !== object.mods.size) {
