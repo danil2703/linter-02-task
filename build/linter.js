@@ -2723,7 +2723,9 @@ function lintWarning(object, string, errors, data) {
         })
     } else {
         if(typeof(object.content) == 'object') {
-                errors = lintWarning(object.content, string, errors, data);
+            for(key in object.content) {
+                errors = lintWarning(object.content[key], string, errors, data);
+            }
         }
     }
 
