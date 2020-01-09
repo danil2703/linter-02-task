@@ -2613,9 +2613,7 @@ function lintMain(object, string, errors, data){
         });
     } else {
         if(typeof(object.content) == 'object') {
-            for(key in object.content) {
-                errors = lintMain(object.content[key], string, errors, data);
-            }
+                errors = lintMain(object.content, string, errors, data);
         }
     }
 
