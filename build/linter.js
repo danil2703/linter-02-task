@@ -2723,7 +2723,7 @@ function lintWarning(object, string, errors, data) {
         })
     } else {
         if(typeof(object.content) == 'object') {
-                errors = lintWarning(object.content[key], string, errors, data);
+                errors = lintWarning(object.content, string, errors, data);
         }
     }
 
