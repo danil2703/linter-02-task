@@ -2734,7 +2734,10 @@ function lintWarning(object, string, errors, data) {
 }
 
 function lintWarningPlaceholder(object, string, errors, data) {
-    let size = object.mods.size;
+    let size;
+    if(object.mods) {
+        size = object.mods.size;
+    }
     if(size !== 's' && size !== 'm' && size !== 'l') {
         errors.push({
             "code": "WARNING.INVALID_PLACEHOLDER_SIZE",
@@ -2756,15 +2759,17 @@ function lintWarningButton(object, string, errors, data) {
             trueSize = arr[index+1];
         }
     });
-    if(object.mods.size !== trueSize) {
-        errors.push({
-            "code": "WARNING.INVALID_BUTTON_SIZE",
-            "error": "Размер кнопки блока warning должен быть на 1 шаг больше эталонного",
-            "location": {
-                "start": { "column": 1, "line": 1 },
-                "end": { "column": 2, "line": 22 }
-            }
-        });
+    if(object.mods) {
+        if(object.mods.size !== trueSize) {
+            errors.push({
+                "code": "WARNING.INVALID_BUTTON_SIZE",
+                "error": "Размер кнопки блока warning должен быть на 1 шаг больше эталонного",
+                "location": {
+                    "start": { "column": 1, "line": 1 },
+                    "end": { "column": 2, "line": 22 }
+                }
+            });
+        }
     }
     return errors;
 }
