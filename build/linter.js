@@ -1,162 +1,68 @@
-const json = `{
-    "block": "warning",
-    "content": [
-        { "block": "text", "mods": { "size": "l" } },
-        { "block": "button"}
-    ]
-}`;
+const json = `[
+    {
+        "block": "text",
+        "mods": { "type": "h1" }
+    },
+    {
+        "block": "text",
+        "mods": { "type": "h1" }
+    }
+]`;
 
 
-
-lint(json);
-
-function lint(string){
-    let object = JSON.parse(string);
-    let errors = [];
-    let data = {
-        h1: false,
-        h2: false,
-        warning: {
-            firstText: false,
-            firstBlock: false
+function findErrors(string, cutString, codeError, messageError, errors) {
+    const endOfSearch = string.length - cutString.length;
+    const startLine = string.slice(0, string.lastIndexOf('{', endOfSearch)).split('\n').length;
+    let open = 1;
+    let close = 0;
+    let endLine;
+    let endCol;
+    const startCol = string.split('\n')[startLine - 1].indexOf('{') + 1;
+    const splitString = string.split('\n');
+    let startOfLoop = startCol;
+    for (let i = startLine - 1; i < splitString.length; i++) {
+        for (let j = startOfLoop; j < splitString[i].length; j++) {
+            if (splitString[i][j] === '{') {
+                open += 1;
+            }
+            if (splitString[i][j] === '}') {
+                close += 1;
+            }
+            if (close === open) {
+                endLine = i + 1;
+                endCol = j + 2;
+                break;
+            }
+        }
+        startOfLoop = 0;
+        if (close === open) {
+            break;
         }
     }
-    if(Array.isArray(object)) {
-        object.forEach(item => {
-            errors = lintMain(item, string, errors, data);
-        })
-    }
-    else {
-        errors = lintMain(object, string, errors, data);
-    }
-    console.log(errors);
-    return errors
-}
-
-function lintMain(object, string, errors, data){
-    if(Array.isArray(object.content)) {
-        object.content.forEach(item => {
-            errors = lintMain(item, string, errors, data);
-        });
-    } else {
-        if(typeof(object.content) == 'object') {
-                errors = lintMain(object.content, string, errors, data);
-        }
-    }
-
-    if(object.block == 'grid' && object.mods) {
-        errors = lintGrid(object.content, object.mods["m-columns"], errors, string);
-    }
-
-    if(object.block == 'text') {
-        errors = lintText(object, string, errors, data);
-    }
-
-    if(object.block == 'warning') {
-        data.warning.firstBlock = false;
-        data.warning.firstText = false;
-        data.warning.firstText = findFirst(object, data);
-        errors = lintWarning(object, string, errors, data);
-    }
+    errors.push({
+        code: codeError,
+        error: messageError,
+        location: {
+            start: { column: startCol, line: startLine },
+            end: { column: endCol, line: endLine },
+        },
+    });
     return errors;
 }
 
-function findFirst(object, data) {
-    if(object.block == 'text' && object.mods && object.mods.size && !data.warning.firstText) {
-        return object.mods.size;
-    }
-    if(Array.isArray(object.content)) {
-        object.content.forEach(item => {
-            if(!data.warning.firstText) {
-                data.warning.firstText = findFirst(item, data);
-            }
-        })
-    } else {
-        if(typeof(object.content) == 'object') {
-            for(key in object.content) {
-                data.warning.firstText = findFirst(object.content[key], data);
-            }
-        }
-    }
-    return data.warning.firstText;
-}
-
-function lintGrid(content, gridSize, errors, str){
-    let marketing = 0;
-    let marketingBlocks = ['commercial', 'offer'];
-    content.forEach(item => {
-        if(item.elem == 'fraction' && item.elemMods) {
-            if(marketingBlocks.includes(item.content[0].block)){
-                marketing += +item.elemMods['m-col'];
-            }
+function lintWarningButton(object, string, errors, data) {
+    const sizes = ['s', 'm', 'l', 'xl', 'xxl'];
+    let trueSize;
+    sizes.forEach((item, index, arr) => {
+        if (item === data.warning.firstText) {
+            trueSize = arr[index + 1];
         }
     });
-    if(marketing > gridSize / 2) {
-        errors.push({
-            "code": "GRID.TOO_MUCH_MARKETING_BLOCKS",
-            "error": "Маркетинговые блоки не могут занимать больше половины от всех колонок блока grid",
-            "location": {
-                "start": { "column": 1, "line": 1 },
-                "end": { "column": 2, "line": str.split('\n').length }
-            }
-        });
-    }
-    return errors;
-}   
-
-function lintWarning(object, string, errors, data) {
-    if(object.block == 'placeholder') {
-        errors = lintWarningPlaceholder(object, string, errors, data);
-        if(!data.warning.firstBlock) {
-            data.warning.firstBlock = 'placeholder';
-        }
-    }
-    if(object.block == 'text' && object.mods) {
-        if(data.warning.firstText !== object.mods.size) {
-            errors.push({
-                "code": "WARNING.TEXT_SIZES_SHOULD_BE_EQUAL",
-                "error": "Тексты в блоке warning должны быть одного размера",
-                "location": {
-                    "start": { "column": 1, "line": 1 },
-                    "end": { "column": 2, "line": 22 }
-                }
-            });
-        }
-    }
-    if(object.block == 'text' && !object.mods) {
-        errors.push({
-            "code": "WARNING.TEXT_SIZES_SHOULD_BE_EQUAL",
-            "error": "Тексты в блоке warning должны быть одного размера",
-            "location": {
-                "start": { "column": 1, "line": 1 },
-                "end": { "column": 2, "line": 22 }
-            }
-        });
-    }
-    if(object.block == 'button') {
-        errors = lintWarningButton(object, string, errors, data);
-        if(!data.warning.firstBlock) {
-            errors.push({
-                "code": "WARNING.INVALID_BUTTON_POSITION",
-                "error": "Блок button в блоке warning не может находиться перед блоком placeholder",
-                "location": {
-                    "start": { "column": 1, "line": 1 },
-                    "end": { "column": 2, "line": 22 }
-                }
-            });
-        }
-    }
-    if(Array.isArray(object.content)) {
-        object.content.forEach(item => {
-            if(item.block !== 'warning') {
-                errors = lintWarning(item, string, errors, data);
-            }
-        })
-    } else {
-        if(typeof(object.content) == 'object') {
-            for(key in object.content) {
-                errors = lintWarning(object.content[key], string, errors, data);
-            }
+    if (object.mods) {
+        if (object.mods.size !== trueSize) {
+            const message = "Размер кнопки блока warning должен быть на 1 шаг больше эталонного";
+            const code = "WARNING.INVALID_BUTTON_SIZE";
+            errors = findErrors(string, data.warningString, code, message, errors);
         }
     }
     return errors;
@@ -164,96 +70,169 @@ function lintWarning(object, string, errors, data) {
 
 function lintWarningPlaceholder(object, string, errors, data) {
     let size;
-    if(object.mods) {
+    if (object.mods) {
         size = object.mods.size;
     }
-    if(size !== 's' && size !== 'm' && size !== 'l') {
-        errors.push({
-            "code": "WARNING.INVALID_PLACEHOLDER_SIZE",
-            "error": "Допустимые размеры для блока placeholder в блоке warning: s, m, l",
-            "location": {
-                "start": { "column": 1, "line": 1 },
-                "end": { "column": 2, "line": 22 }
-            }
-        });
+    if (size !== 's' && size !== 'm' && size !== 'l') {
+        const message = "Допустимые размеры для блока placeholder в блоке warning: s, m, l";
+        const code = "WARNING.INVALID_PLACEHOLDER_SIZE";
+        errors = findErrors(string, data.warningString, code, message, errors);
     }
     return errors;
 }
 
-function lintWarningButton(object, string, errors, data) {
-    let sizes = ['xs' ,'s', 'm', 'l', 'xl', 'xxl', 'xxxl'];
-    let trueSize;
-    sizes.forEach((item, index, arr) => {
-        if(item === data.warning.firstText) {
-            trueSize = arr[index+1];
+function findFirst(object, data) {
+    if (object.block === 'text' && object.mods && object.mods.size && !data.warning.firstText) {
+        return object.mods.size;
+    }
+    if (Array.isArray(object.content)) {
+        object.content.forEach((item) => {
+            if (!data.warning.firstText) {
+                data.warning.firstText = findFirst(item, data);
+            }
+        });
+    } else if (typeof (object.content) === 'object') {
+        for (const key in object.content) {
+            data.warning.firstText = findFirst(object.content[key], data);
+        }
+    }
+    return data.warning.firstText;
+}
+
+function lintGrid(content, string, gridSize, errors, data) {
+    let marketing = 0;
+    const marketingBlocks = ['commercial', 'offer'];
+    content.forEach((item) => {
+        if (item.elem === 'fraction' && item.elemMods) {
+            if (marketingBlocks.includes(item.content[0].block)) {
+                marketing += +item.elemMods['m-col'];
+            }
         }
     });
-    if(object.mods) {
-        if(object.mods.size !== trueSize) {
-            errors.push({
-                "code": "WARNING.INVALID_BUTTON_SIZE",
-                "error": "Размер кнопки блока warning должен быть на 1 шаг больше эталонного",
-                "location": {
-                    "start": { "column": 1, "line": 1 },
-                    "end": { "column": 2, "line": 22 }
-                }
-            });
-        }
-    }
-
-    if(!object.mods) {
-        errors.push({
-            "code": "WARNING.INVALID_BUTTON_SIZE",
-            "error": "Размер кнопки блока warning должен быть на 1 шаг больше эталонного",
-            "location": {
-                "start": { "column": 1, "line": 1 },
-                "end": { "column": 2, "line": 22 }
-            }
-        });
+    if (marketing > gridSize / 2) {
+        const message = "Маркетинговые блоки не могут занимать больше половины от всех колонок блока grid";
+        const code = "GRID.TOO_MUCH_MARKETING_BLOCKS";
+        errors = findErrors(string, data.str, code, message, errors);
     }
     return errors;
 }
 
+function lintWarning(object, string, errors, data) {
+    data.warningString = data.warningString
+        .slice(data.warningString.indexOf(object.block) + object.block.length);
+    if (object.block === 'placeholder') {
+        errors = lintWarningPlaceholder(object, string, errors, data);
+        if (!data.warning.firstBlock) {
+            data.warning.firstBlock = 'placeholder';
+        }
+    }
+    if (object.block === 'text' && object.mods) {
+        if (data.warning.firstText !== object.mods.size) {
+            const message = "Тексты в блоке warning должны быть одного размера";
+            const code = "WARNING.TEXT_SIZES_SHOULD_BE_EQUAL";
+            errors = findErrors(string, data.str, code, message, errors);
+        }
+    }
+    if (object.block === 'button') {
+        errors = lintWarningButton(object, string, errors, data);
+        if (!data.warning.firstBlock) {
+            const message = "Блок button в блоке warning не может находиться перед блоком placeholder";
+            const code = "WARNING.INVALID_BUTTON_POSITION";
+            errors = findErrors(string, data.warningString, code, message, errors);
+        }
+    }
+    if (Array.isArray(object.content)) {
+        object.content.forEach((item) => {
+            if (item.block !== 'warning') {
+                errors = lintWarning(item, string, errors, data);
+            }
+        });
+    } else if (typeof (object.content) === 'object') {
+        for (const key in object.content) {
+            errors = lintWarning(object.content[key], string, errors, data);
+        }
+    }
+    return errors;
+}
+
+
 function lintText(object, string, errors, data) {
-    if(object.mods) {
-        if(object.mods.type == 'h1') {
-            if(data.h1) {
-                errors.push({
-                    "code": "TEXT.SEVERAL_H1",
-                    "error": "h1 должен быть 1",
-                    "location": {
-                        "start": { "column": 1, "line": 1 },
-                        "end": { "column": 2, "line": 22 }
-                    }
-                });
+    if (object.mods) {
+        if (object.mods.type === 'h1') {
+            if (data.h1) {
+                const message = "Заголовок первого уровня на странице должен быть единственным";
+                const code = "TEXT.SEVERAL_H1";
+                errors = findErrors(string, data.str, code, message, errors);
             }
             data.h1 = true;
         }
-        if(object.mods.type == 'h2') {
-            if(!data.h1) {
-                errors.push({
-                    "code": "TEXT.INVALID_H2_POSITION",
-                    "error": "Заголовок h2 не должен быть перед h1",
-                    "location": {
-                        "start": { "column": 1, "line": 1 },
-                        "end": { "column": 2, "line": 22 }
-                    }
-                });
+        if (object.mods.type === 'h2') {
+            if (!data.h1) {
+                const message = "Заголовок второго уровня не может находиться перед заголовком первого уровня";
+                const code = "TEXT.INVALID_H2_POSITION";
+                errors = findErrors(string, data.str, code, message, errors);
             }
             data.h2 = true;
         }
-        if(object.mods.type == 'h3') {
-            if(!data.h2) {
-                errors.push({
-                    "code": "TEXT.INVALID_H3_POSITION",
-                    "error": "Заголовок h3 не должен быть перед h2",
-                    "location": {
-                        "start": { "column": 1, "line": 1 },
-                        "end": { "column": 2, "line": 22 }
-                    }
-                });
+        if (object.mods.type === 'h3') {
+            if (!data.h2) {
+                const message = "Заголовок третьего уровня не должен быть перед второго уровня";
+                const code = "TEXT.INVALID_H3_POSITION";
+                errors = findErrors(string, data.str, code, message, errors);
             }
         }
     }
     return errors;
 }
+
+function lintMain(object, string, errors, data) {
+    data.str = data.str.slice(data.str.indexOf(object.block) + object.block.length);
+    if (object.block === 'grid' && object.mods) {
+        errors = lintGrid(object.content, string, object.mods['m-columns'], errors, data);
+    }
+
+    if (object.block === 'text') {
+        errors = lintText(object, string, errors, data);
+    }
+
+    if (object.block === 'warning') {
+        data.warning.firstBlock = false;
+        data.warning.firstText = false;
+        data.warningString = string;
+        data.warning.firstText = findFirst(object, data);
+        errors = lintWarning(object, string, errors, data);
+    }
+    if (Array.isArray(object.content)) {
+        object.content.forEach((item) => {
+            errors = lintMain(item, string, errors, data);
+        });
+    } else if (typeof (object.content) === 'object') {
+        errors = lintMain(object.content, string, errors, data);
+    }
+    return errors;
+}
+
+function lint(string) {
+    const object = JSON.parse(string);
+    let errors = [];
+    const data = {
+        h1: false,
+        h2: false,
+        warning: {
+            firstText: false,
+            firstBlock: false,
+        },
+        str: string,
+    };
+    if (Array.isArray(object)) {
+        object.forEach((item) => {
+            errors = lintMain(item, string, errors, data);
+        });
+    } else {
+        errors = lintMain(object, string, errors, data);
+    }
+    return errors;
+}
+
+
+lint(json);

@@ -1,0 +1,27 @@
+{
+  "name": "linter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "linter.js",
+  "scripts": {
+    "start": "node build/linter.js",
+    "lint": "./node_modules/.bin/eslint **/linter.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danil2703/task-002.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/danil2703/task-002/issues"
+  },
+  "homepage": "https://github.com/danil2703/task-002#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.0"
+  }
+}
