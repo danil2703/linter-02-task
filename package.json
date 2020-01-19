@@ -4,8 +4,7 @@
   "description": "",
   "main": "linter.js",
   "scripts": {
-    "start": "node build/linter.js",
-    "lint": "./node_modules/.bin/eslint **/linter.js"
+    "start": "node build/linter.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +19,9 @@
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.20.0"
+    "eslint-plugin-import": "^2.20.0",
+    "gulp": "^4.0.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-minify": "^3.1.0"
   }
 }

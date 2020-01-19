@@ -22,5 +22,8 @@ module.exports = {
         "no-param-reassign": "off",
         "no-restricted-syntax": "off",
         "no-plusplus": "off",
+        "no-unused-vars": "off",
+        "no-undef": "off",
+        "linebreak-style": "off"
     }
 };

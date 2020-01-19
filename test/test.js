@@ -127,8 +127,6 @@ describe("блок Grid", () => {
     });
 });
 
-
-
 describe("Поиск ошибок", () => {
     positionOfErrors.forEach((item, index) => {
         it("Заголовок третьего уровня не может находиться перед заголовком второго уровня", function() {
