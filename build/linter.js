@@ -1,18 +1,5 @@
-const json = `[
-    {
-        "block": "text",
-        "mods": { "type": "h1" }
-    },
-    {
-        "block": "text",
-        "mods": { "type": "h1" }
-    }
-]`;
-
-
 function findErrors(string, cutString, codeError, messageError, errors) {
     const endOfSearch = string.length - cutString.length;
-    const startLine = string.slice(0, string.lastIndexOf('{', endOfSearch)).split('\n').length;
     let open = 1;
     let close = 0;
     let endLine;
@@ -47,7 +34,6 @@ function findErrors(string, cutString, codeError, messageError, errors) {
             end: { column: endCol, line: endLine },
         },
     });
-    return errors;
 }
 
 function lintWarningButton(object, string, errors, data) {
@@ -62,10 +48,9 @@ function lintWarningButton(object, string, errors, data) {
         if (object.mods.size !== trueSize) {
             const message = "Размер кнопки блока warning должен быть на 1 шаг больше эталонного";
             const code = "WARNING.INVALID_BUTTON_SIZE";
-            errors = findErrors(string, data.warningString, code, message, errors);
+            findErrors(string, data.warningString, code, message, errors);
         }
     }
-    return errors;
 }
 
 function lintWarningPlaceholder(object, string, errors, data) {
@@ -76,9 +61,8 @@ function lintWarningPlaceholder(object, string, errors, data) {
     if (size !== 's' && size !== 'm' && size !== 'l') {
         const message = "Допустимые размеры для блока placeholder в блоке warning: s, m, l";
         const code = "WARNING.INVALID_PLACEHOLDER_SIZE";
-        errors = findErrors(string, data.warningString, code, message, errors);
+        findErrors(string, data.warningString, code, message, errors);
     }
-    return errors;
 }
 
 function findFirst(object, data) {
@@ -112,16 +96,17 @@ function lintGrid(content, string, gridSize, errors, data) {
     if (marketing > gridSize / 2) {
         const message = "Маркетинговые блоки не могут занимать больше половины от всех колонок блока grid";
         const code = "GRID.TOO_MUCH_MARKETING_BLOCKS";
-        errors = findErrors(string, data.str, code, message, errors);
+        findErrors(string, data.str, code, message, errors);
     }
-    return errors;
 }
 
 function lintWarning(object, string, errors, data) {
-    data.warningString = data.warningString
-        .slice(data.warningString.indexOf(object.block) + object.block.length);
+    if(object.block) {
+        data.warningString = data.warningString
+            .slice(data.warningString.indexOf(object.block) + object.block.length);
+    }
     if (object.block === 'placeholder') {
-        errors = lintWarningPlaceholder(object, string, errors, data);
+        lintWarningPlaceholder(object, string, errors, data);
         if (!data.warning.firstBlock) {
             data.warning.firstBlock = 'placeholder';
         }
@@ -130,31 +115,29 @@ function lintWarning(object, string, errors, data) {
         if (data.warning.firstText !== object.mods.size) {
             const message = "Тексты в блоке warning должны быть одного размера";
             const code = "WARNING.TEXT_SIZES_SHOULD_BE_EQUAL";
-            errors = findErrors(string, data.str, code, message, errors);
+            findErrors(string, data.str, code, message, errors);
         }
     }
     if (object.block === 'button') {
-        errors = lintWarningButton(object, string, errors, data);
+        lintWarningButton(object, string, errors, data);
         if (!data.warning.firstBlock) {
             const message = "Блок button в блоке warning не может находиться перед блоком placeholder";
             const code = "WARNING.INVALID_BUTTON_POSITION";
-            errors = findErrors(string, data.warningString, code, message, errors);
+            findErrors(string, data.warningString, code, message, errors);
         }
     }
     if (Array.isArray(object.content)) {
         object.content.forEach((item) => {
             if (item.block !== 'warning') {
-                errors = lintWarning(item, string, errors, data);
+                lintWarning(item, string, errors, data);
             }
         });
     } else if (typeof (object.content) === 'object') {
         for (const key in object.content) {
-            errors = lintWarning(object.content[key], string, errors, data);
+            lintWarning(object.content[key], string, errors, data);
         }
     }
-    return errors;
 }
-
 
 function lintText(object, string, errors, data) {
     if (object.mods) {
@@ -162,7 +145,7 @@ function lintText(object, string, errors, data) {
             if (data.h1) {
                 const message = "Заголовок первого уровня на странице должен быть единственным";
                 const code = "TEXT.SEVERAL_H1";
-                errors = findErrors(string, data.str, code, message, errors);
+                findErrors(string, data.str, code, message, errors);
             }
             data.h1 = true;
         }
@@ -170,7 +153,7 @@ function lintText(object, string, errors, data) {
             if (!data.h1) {
                 const message = "Заголовок второго уровня не может находиться перед заголовком первого уровня";
                 const code = "TEXT.INVALID_H2_POSITION";
-                errors = findErrors(string, data.str, code, message, errors);
+                findErrors(string, data.str, code, message, errors);
             }
             data.h2 = true;
         }
@@ -178,38 +161,36 @@ function lintText(object, string, errors, data) {
             if (!data.h2) {
                 const message = "Заголовок третьего уровня не должен быть перед второго уровня";
                 const code = "TEXT.INVALID_H3_POSITION";
-                errors = findErrors(string, data.str, code, message, errors);
+                findErrors(string, data.str, code, message, errors);
             }
         }
     }
-    return errors;
 }
 
 function lintMain(object, string, errors, data) {
-    data.str = data.str.slice(data.str.indexOf(object.block) + object.block.length);
+    if(object.block) {
+        data.str = data.str.slice(data.str.indexOf(object.block) + object.block.length);
+    }
     if (object.block === 'grid' && object.mods) {
-        errors = lintGrid(object.content, string, object.mods['m-columns'], errors, data);
+        lintGrid(object.content, string, object.mods['m-columns'], errors, data);
     }
-
     if (object.block === 'text') {
-        errors = lintText(object, string, errors, data);
+        lintText(object, string, errors, data);
     }
-
     if (object.block === 'warning') {
         data.warning.firstBlock = false;
         data.warning.firstText = false;
         data.warningString = string;
         data.warning.firstText = findFirst(object, data);
-        errors = lintWarning(object, string, errors, data);
+        lintWarning(object, string, errors, data);
     }
     if (Array.isArray(object.content)) {
         object.content.forEach((item) => {
-            errors = lintMain(item, string, errors, data);
+            lintMain(item, string, errors, data);
         });
     } else if (typeof (object.content) === 'object') {
-        errors = lintMain(object.content, string, errors, data);
+        lintMain(object.content, string, errors, data);
     }
-    return errors;
 }
 
 function lint(string) {
@@ -226,13 +207,12 @@ function lint(string) {
     };
     if (Array.isArray(object)) {
         object.forEach((item) => {
-            errors = lintMain(item, string, errors, data);
+            lintMain(item, string, errors, data);
         });
     } else {
-        errors = lintMain(object, string, errors, data);
+        lintMain(object, string, errors, data);
     }
     return errors;
 }
-
 
 lint(json);
